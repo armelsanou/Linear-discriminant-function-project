@@ -1,0 +1,142 @@
+
+```{r}
+library("caret")
+library("MixSim")
+library("MASS")
+
+```
+```{r}
+# Création des datasets avec MixSim
+# dataset 1
+d1.Q <- MixSim(MaxOmega = 0.0, BarOmega = 0.0, K = 2, p = 2, sph = TRUE)
+d1 <- simdataset(n = 500, Pi = d1.Q$Pi, Mu = d1.Q$Mu, S = d1.Q$S)
+
+
+#dataset 2
+d2.Q <- MixSim(MaxOmega = 0.10, BarOmega = 0.05, K = 3, p = 2, sph = TRUE)
+d2 <- simdataset(n = 500, Pi = d2.Q$Pi, Mu = d2.Q$Mu, S = d2.Q$S)
+
+#dataset 3
+d3.Q <- MixSim(MaxOmega = 0.10, BarOmega = 0.05, K = 3, p = 2, sph = FALSE)
+d3 <- simdataset(n = 500, Pi = d3.Q$Pi, Mu = d3.Q$Mu, S = d3.Q$S)
+
+```
+
+
+```{r}
+# Représentation graphique 
+my_plot = function(dataset, predicts, title){
+  plot(dataset$X, col = colors[predicts], pch = 19, cex = 0.8,
+       xlab = "", ylab = "", axes = F, main = title)
+  box()
+}
+```
+
+
+```{r}
+colors <- c("red", "green", "blue")
+par(mfrow=c(1,3))
+```
+
+```{r}
+# Fonction discriminante quadratiquepour le premier dataset
+# ************ dataset1 1 ************ 
+
+Sigma1_1 = matrix(d1.Q$S[1:4], nrow = 2)
+Sigma2_1 = matrix(d1.Q$S[5:8], nrow = 2)
+
+G1_1 <- c()
+G2_1 <- c()
+
+for (i in 1:500)
+{
+  X= d1$X[i,]
+  G1_1 <- append(G1_1,-0.5*log(det(Sigma1_1))-0.5*(t(X-d1.Q$Mu[1,]))%*%solve(Sigma1_1)%*%(X-d1.Q$Mu[1,]) + log(d1.Q$Pi[1]))
+  G2_1 <- append(G2_1,-0.5*log(det(Sigma2_1))-0.5*(t(X-d1.Q$Mu[2,]))%*%solve(Sigma2_1)%*%(X-d1.Q$Mu[2,]) + log(d1.Q$Pi[2]))
+}
+matrice_1 <- cbind(matrix(G1_1,500),matrix(G2_1,500))
+matrice_1<-cbind(cbind(matrix(G1_1,500),
+matrix(G2_1,500)),matrix(apply(matrice_1, 1, which.max),500))
+
+```
+
+```{r}
+# ************ d de données 2 ************ 
+
+
+Sigma1_2 = matrix(d2.Q$S[1:4],nrow=2)
+Sigma2_2 = matrix(d2.Q$S[5:8],nrow=2)
+Sigma3_2 = matrix(d2.Q$S[9:12],nrow=2)
+
+
+
+G1_2 <- c()
+G2_2 <- c()
+G3_2 <- c()
+
+for (i in 1:500)
+{
+  X= d2$X[i,]
+  G1_2 <- append(G1_2,-0.5*log(det(Sigma1_2))-0.5*(t(X-d2.Q$Mu[1,]))%*%solve(Sigma1_2)%*%(X-d2.Q$Mu[1,]) + log(d2.Q$Pi[1]))
+  G2_2 <- append(G2_2,-0.5*log(det(Sigma2_2))-0.5*(t(X-d2.Q$Mu[2,]))%*%solve(Sigma2_2)%*%(X-d2.Q$Mu[2,]) + log(d2.Q$Pi[2]))
+  G3_2 <- append(G3_2,-0.5*log(det(Sigma3_2))-0.5*(t(X-d2.Q$Mu[3,]))%*%solve(Sigma3_2)%*%(X-d2.Q$Mu[3,]) + log(d2.Q$Pi[3]))
+  
+}
+matrice_2 <- cbind(matrix(G1_2,500),matrix(G2_2,500),matrix(G3_2,500))
+matrice_2<-cbind(cbind(matrix(G1_1,500), matrix(G2_1,500),matrix(G3_2,500)),matrix(apply(matrice_2, 1, which.max),500))
+```
+
+
+```{r}
+# ************ d de données 3 ************ 
+
+Sigma1_3 = matrix(d3.Q$S[1:4],nrow=2)
+Sigma2_3 = matrix(d3.Q$S[5:8],nrow=2)
+Sigma3_3 = matrix(d3.Q$S[9:12],nrow=2)
+
+
+
+G1_3 <- c()
+G2_3 <- c()
+G3_3 <- c()
+
+for (i in 1:500)
+{
+  X= d2$X[i,]
+  G1_3 <- append(G1_3,-0.5*log(det(Sigma1_3))-0.5*(t(X-d3.Q$Mu[1,]))%*%solve(Sigma1_3)%*%(X-d3.Q$Mu[1,]) + log(d3.Q$Pi[1]))
+  G2_3 <- append(G2_3,-0.5*log(det(Sigma2_3))-0.5*(t(X-d3.Q$Mu[2,]))%*%solve(Sigma2_3)%*%(X-d3.Q$Mu[2,]) + log(d3.Q$Pi[2]))
+  G3_3 <- append(G3_3,-0.5*log(det(Sigma3_3))-0.5*(t(X-d3.Q$Mu[3,]))%*%solve(Sigma3_3)%*%(X-d3.Q$Mu[3,]) + log(d3.Q$Pi[3]))
+  
+}
+matrice_3 <- cbind(matrix(G1_3,500),matrix(G2_3,500),matrix(G3_3,500))
+matrice_3<-cbind(cbind(matrix(G1_3,500),
+matrix(G2_3,500),matrix(G3_3,500)),matrix(apply(matrice_3, 1, which.max),500))
+
+matrice_3
+
+
+## ************* Plotting ************************ 
+# 
+my_plot(d1,d1$id,"Dataset1 with MixSim")
+my_plot(d1,matrice_1[,3],"Dataset1 with Gi")
+
+my_plot(d2,d2$id,"Dataset2 with MixSim")
+my_plot(d2,matrice_2[,4],"Dataset2 with Gi")
+
+my_plot(d3,d3$id,"Dataset3 with MixSim")
+my_plot(d3,matrice_3[,4],"Dataset 3 with Gi")
+
+
+#Matrice de confusion 
+
+ #cm1 <- confusionMatrix(data=factor(matrice_1[,3]), reference = factor(matrice_1[,3]))
+#cm1
+print("--------------------------------------------------------------------")
+cm2 <- confusionMatrix(data=factor(matrice_2[,1:3]), reference = factor(matrice_2[,4]))
+cm2
+print("--------------------------------------------------------------------")
+cm3 <- confusionMatrix(data=factor(matrice_3[,4]), reference = factor(matrice_3[,4]))
+cm3
+print("--------------------------------------------------------------------")
+```
+Cas 
